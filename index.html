@@ -6,156 +6,283 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Logistic Regression | ML Bloom</title>
 <style>
-:root{--purple:#7555d9;--pink:#f3b7db;--ink:#292342;--bg:#faf7ff}
+:root{--purple:#7048e8;--pink:#ff79b0;--blue:#54a7ff;--ink:#30284a;--muted:#716a85;--bg:#fbf8ff}
 *{box-sizing:border-box;scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif;line-height:1.7}
-nav{display:flex;justify-content:space-between;align-items:center;padding:18px 7%;background:#ffffffdf;position:sticky;top:0;border-bottom:1px solid #eee5ff;z-index:3}
-nav b{color:var(--purple);font-size:20px}nav a{color:var(--purple);text-decoration:none;font-weight:bold}
-.hero{padding:75px 8%;background:linear-gradient(120deg,#eee7ff,#ffe9f5);border-radius:0 0 45px 45px}
-.tag{display:inline-block;background:white;border-radius:30px;padding:7px 14px;font-size:12px;color:var(--purple);font-weight:bold}
-h1{font-size:clamp(38px,7vw,68px);line-height:1.08;max-width:780px;margin:22px 0}
-h2{color:var(--purple);font-size:28px}
-p{color:#5c5870}
-.btn{display:inline-block;background:var(--purple);color:white;padding:12px 19px;border:0;border-radius:12px;text-decoration:none;font-weight:bold;cursor:pointer}
-main{max-width:1000px;margin:auto;padding:25px}
-section{padding:34px 0;scroll-margin-top:75px}
-.card{background:white;border:1px solid #eee5ff;border-radius:22px;padding:25px;margin:15px 0;box-shadow:0 8px 30px #39207b0b}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:15px}
-.emoji{font-size:30px}
-.formula{background:#30264c;color:#fff;text-align:center;padding:25px;border-radius:18px;font-size:25px}
-label{display:block;font-weight:bold;margin:15px 0 6px}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+nav{position:sticky;top:0;z-index:5;background:#ffffffed;backdrop-filter:blur(12px);padding:14px 6%;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #eee5ff}
+.logo{font-size:21px;font-weight:900;color:var(--purple)}
+nav a{font-size:13px;text-decoration:none;color:var(--ink);margin:0 5px}
+.hero{padding:65px 7%;background:linear-gradient(135deg,#e9e4ff,#ffe6f2);display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center}
+.tag{display:inline-block;background:white;padding:6px 13px;border-radius:25px;font-size:12px;color:var(--purple);font-weight:bold}
+h1{font-size:clamp(35px,5vw,58px);line-height:1.12;margin:20px 0}
+h1 span{color:var(--purple)}
+h2{font-size:30px;line-height:1.25;margin:0 0 14px}
+h3{margin-top:0}
+p{color:var(--muted)}
+.btn{display:inline-block;background:var(--purple);color:white;padding:12px 20px;border-radius:12px;text-decoration:none;border:0;font-weight:bold;cursor:pointer}
+.art,.card{background:white;border:1px solid #eee6ff;border-radius:20px;padding:23px;box-shadow:0 8px 25px #34206009}
+section{padding:52px 7%;scroll-margin-top:75px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#e94c96;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px;margin-top:24px}
+.emoji{font-size:28px}
+.formula{background:#30284a;color:#fff;padding:25px;text-align:center;border-radius:18px;font-size:25px;margin:20px 0}
+.formula small{display:block;font-size:13px;color:#e3d9ff;margin-top:8px}
+.step{background:white;border-left:4px solid var(--pink);border-radius:12px;padding:15px 18px;margin:12px 0}
+.demo{padding:25px;background:linear-gradient(135deg,#eee7ff,#fff0f7);border-radius:20px;margin-top:20px}
 input[type=range]{width:100%;accent-color:var(--purple)}
-.result{font-size:22px;font-weight:bold;color:var(--purple)}
-.options button{display:block;width:100%;text-align:left;background:#f5f0ff;border:1px solid #e4d9ff;border-radius:12px;padding:12px;margin:9px 0;cursor:pointer;color:var(--ink)}
-.options button:hover{background:#e8ddff}
-footer{text-align:center;padding:30px;background:#eee7ff;margin-top:35px}
-small{color:#777}
+.result{background:white;padding:20px;border-radius:15px;text-align:center;margin-top:15px}
+.result strong{display:block;color:var(--purple);font-size:32px}
+canvas{display:block;width:100%;height:240px;background:white;border-radius:14px;margin-top:15px}
+.quiz-option{display:block;width:100%;padding:12px;text-align:left;border:1px solid #ddd0ff;border-radius:10px;background:white;color:var(--ink);margin:9px 0;cursor:pointer}
+.quiz-option:hover{border-color:var(--purple)}
+#feedback{font-weight:bold}
+footer{background:#30284a;text-align:center;padding:35px 7%;color:white}
+footer p{color:#ded5f6}
+@media(max-width:750px){nav{flex-wrap:wrap}.hero{grid-template-columns:1fr;padding-top:42px}.grid{grid-template-columns:1fr}section{padding:40px 5%}h2{font-size:26px}}
 </style>
 </head>
 <body>
-<nav><b>✿ ML BLOOM</b><a href="#explore">Explore ↓</a></nav>
+
+<nav>
+  <div class="logo">✿ ML Bloom</div>
+  <div>
+    <a href="#intro">Learn</a>
+    <a href="#formula">Formula</a>
+    <a href="#demo">Demo</a>
+    <a href="#conclusion">Conclusion</a>
+  </div>
+</nav>
+
 <header class="hero">
-<span class="tag">MACHINE LEARNING · BLOG 02</span>
-<h1>Not just a number.<br>A probability. 💜</h1>
-<p>Discover how machines make yes-or-no predictions with Logistic Regression.</p>
-<a class="btn" href="#explore">Start Exploring →</a>
+  <div>
+    <span class="tag">MACHINE LEARNING · CLASSIFICATION</span>
+    <h1>Predict the <span>probability.</span> Make a decision.</h1>
+    <p>Explore Logistic Regression, a supervised machine learning algorithm used to estimate the probability of an outcome and classify data into categories.</p>
+    <a class="btn" href="#intro">Start Learning →</a>
+    <p><strong>Student Project</strong> · Sheetal Jaiswar · Roll No. 55034</p>
+  </div>
+  <div class="art">
+    <h3>✨ From probability to prediction</h3>
+    <svg viewBox="0 0 340 220" width="100%" role="img" aria-label="S-shaped sigmoid curve rising from zero to one">
+      <g stroke="#eee7ff">
+        <path d="M35 25V180H320 M35 140H320 M35 100H320 M35 60H320"/>
+      </g>
+      <path d="M38 170 C95 170 112 164 137 137 S171 52 205 38 S270 30 310 30" fill="none" stroke="#7048e8" stroke-width="4" stroke-linecap="round"/>
+      <path d="M35 100H320" stroke="#ff79b0" stroke-dasharray="5 5" stroke-width="2"/>
+      <circle cx="171" cy="100" r="6" fill="#ff79b0"/>
+      <g fill="#716a85" font-size="11">
+        <text x="7" y="33">1.0</text><text x="7" y="104">0.5</text><text x="7" y="177">0</text>
+        <text x="110" y="205">Input score →</text>
+        <text x="187" y="91">50%</text>
+      </g>
+    </svg>
+    <p>The sigmoid function converts a model score into a value between 0 and 1.</p>
+  </div>
 </header>
-<main id="explore">
-<section>
-<h2>01 — What is Logistic Regression?</h2>
-<div class="card">
-<p>Logistic Regression is a supervised machine learning algorithm mainly used for classification. It estimates the probability that an input belongs to a particular class.</p>
-<p>Imagine predicting whether a student will pass or fail based on their study hours. The model estimates the chance of passing and classifies the result using a chosen threshold.</p>
-</div>
-<div class="grid">
-<div class="card"><div class="emoji">🎓</div><h3>Pass or Fail</h3><p>Estimate whether a student may pass an exam.</p></div>
-<div class="card"><div class="emoji">📩</div><h3>Spam Detection</h3><p>Classify emails as spam or not spam.</p></div>
-<div class="card"><div class="emoji">🩺</div><h3>Risk Classification</h3><p>Support risk classification using appropriate data.</p></div>
-</div>
+
+<section id="intro">
+  <span class="label">01 · Introduction</span>
+  <h2>What is Logistic Regression?</h2>
+  <p>Logistic Regression is a supervised machine learning algorithm commonly used for classification. It estimates the probability that an observation belongs to a particular class. For binary classification, the output probability lies between 0 and 1.</p>
+  <div class="grid">
+    <article class="card"><div class="emoji">🎯</div><h3>Objective</h3><p>Estimate the probability of an event and use it to classify observations.</p></article>
+    <article class="card"><div class="emoji">📚</div><h3>Learning Type</h3><p>Supervised learning: the model learns from labelled examples.</p></article>
+    <article class="card"><div class="emoji">💌</div><h3>Simple Example</h3><p>Predict whether an email is spam or not spam based on its features.</p></article>
+  </div>
 </section>
-<section>
-<h2>02 — The sigmoid function</h2>
-<div class="formula">P = 1 / (1 + e<sup>−z</sup>)</div>
-<div class="card">
-<p>The sigmoid function converts a model score into a value between 0 and 1, which can be interpreted as a predicted probability in a properly specified model.</p>
-<p><b>z</b> is the model's linear score. A probability closer to 1 indicates stronger support for the positive class; closer to 0 indicates stronger support for the negative class.</p>
-</div>
+
+<section id="formula">
+  <span class="label">02 · Mathematical Concept</span>
+  <h2>The Sigmoid Function</h2>
+  <p>Logistic Regression first calculates a score from the input features. The sigmoid function converts that score into a probability.</p>
+  <div class="formula">
+    P(Y=1) = 1 / (1 + e<sup>−z</sup>)
+    <small>z = b₀ + b₁X₁ + b₂X₂ + ... + bₙXₙ</small>
+  </div>
+  <div class="grid">
+    <article class="card"><h3>Probability</h3><p>The estimated chance of the selected class, from 0 to 1.</p></article>
+    <article class="card"><h3>Features</h3><p>Input information used to make a prediction, such as email words or transaction details.</p></article>
+    <article class="card"><h3>Threshold</h3><p>A chosen cutoff, often 0.5, can turn the probability into a class label. The best cutoff depends on the problem.</p></article>
+  </div>
 </section>
-<section>
-<h2>03 — Try the prediction lab 🧪</h2>
-<div class="card">
-<p>Move the slider to explore an illustrative student-pass model. This is a teaching example, not a trained real-world model.</p>
-<label for="hours">Hours studied: <span id="hoursText">5</span></label>
-<input id="hours" type="range" min="0" max="10" value="5" oninput="predict()">
-<label for="threshold">Pass probability threshold: <span id="thresholdText">50%</span></label>
-<input id="threshold" type="range" min="20" max="80" value="50" oninput="predict()">
-<p>Illustrative probability: <span class="result" id="prob">50%</span></p>
-<div style="height:18px;background:#eee5ff;border-radius:20px;overflow:hidden"><div id="bar" style="height:100%;width:50%;background:linear-gradient(90deg,#9a7bf4,#ed9ccf);transition:.2s"></div></div>
-<p class="result" id="prediction">Likely to pass 🎓</p>
-<small>The probability is generated by a simple sigmoid teaching formula, not by actual student records.</small>
-</div>
+
+<section id="working">
+  <span class="label">03 · How It Works</span>
+  <h2>From examples to classification</h2>
+  <div class="step"><strong>Step 1 — Collect labelled data</strong><p>Gather examples with known outcomes, such as emails labelled spam or not spam.</p></div>
+  <div class="step"><strong>Step 2 — Prepare the features</strong><p>Clean the dataset and convert the information into useful numerical features.</p></div>
+  <div class="step"><strong>Step 3 — Train the model</strong><p>The model learns coefficients that relate the input features to the outcome.</p></div>
+  <div class="step"><strong>Step 4 — Estimate probability</strong><p>The sigmoid function converts the calculated score into a probability.</p></div>
+  <div class="step"><strong>Step 5 — Classify and evaluate</strong><p>Choose a threshold and assess performance using suitable metrics such as precision, recall and confusion matrix.</p></div>
 </section>
-<section>
-<h2>04 — How does it work?</h2>
-<div class="grid">
-<div class="card"><h3>① Collect data</h3><p>Gather labelled examples, such as study hours and pass/fail outcomes.</p></div>
-<div class="card"><h3>② Train the model</h3><p>Learn model coefficients from the labelled training data.</p></div>
-<div class="card"><h3>③ Predict</h3><p>Estimate class probabilities for new inputs.</p></div>
-<div class="card"><h3>④ Choose a threshold</h3><p>Use an appropriate cutoff to convert probability into a class.</p></div>
-</div>
+
+<section id="demo">
+  <span class="label">04 · Interactive Demo</span>
+  <h2>Explore a classification probability</h2>
+  <p>This illustrative demo shows how a model score can change a probability. It is not a trained model or a real-world risk assessment.</p>
+  <div class="demo">
+    <label for="score"><strong>Adjust the input score:</strong> <span id="scoreText">0</span></label>
+    <input id="score" type="range" min="-6" max="6" step="0.5" value="0">
+    <div class="result">
+      <p>Estimated probability of Class 1</p>
+      <strong id="probability">50.0%</strong>
+      <p id="classText">At the illustrative 50% threshold: Class 1</p>
+    </div>
+    <canvas id="curve" aria-label="Sigmoid probability curve with selected score"></canvas>
+  </div>
 </section>
-<section>
-<h2>05 — Advantages & limitations</h2>
-<div class="grid">
-<div class="card"><h3>✨ Advantages</h3><p>• Simple and interpretable<br>• Produces probabilities<br>• Useful for binary classification<br>• Efficient on many datasets</p></div>
-<div class="card"><h3>🔎 Limitations</h3><p>• Assumes a linear relationship between predictors and log-odds<br>• Can struggle with complex patterns<br>• Needs suitable data preparation</p></div>
-</div>
+
+<section id="applications">
+  <span class="label">05 · Real-world Applications</span>
+  <h2>Where is it used?</h2>
+  <div class="grid">
+    <article class="card"><div class="emoji">📧</div><h3>Email Filtering</h3><p>Help classify emails as spam or not spam.</p></article>
+    <article class="card"><div class="emoji">🏦</div><h3>Finance</h3><p>Estimate the probability of certain financial outcomes using relevant data.</p></article>
+    <article class="card"><div class="emoji">🛍️</div><h3>Marketing</h3><p>Estimate whether a customer may click an advertisement or respond to an offer.</p></article>
+  </div>
 </section>
-<section>
-<h2>06 — Quick knowledge check 🧠</h2>
-<div class="card">
-<p><b>Q1. Logistic Regression is mainly used for?</b></p>
-<div class="options">
-<button onclick="answer(0,0)">A. Classification</button>
-<button onclick="answer(0,1)">B. Image editing</button>
-<button onclick="answer(0,2)">C. File compression</button>
-</div><p id="feedback0"></p>
-<hr>
-<p><b>Q2. What range does the sigmoid output have?</b></p>
-<div class="options">
-<button onclick="answer(1,0)">A. 0 to 100 only</button>
-<button onclick="answer(1,1)">B. 0 to 1</button>
-<button onclick="answer(1,2)">C. −10 to 10</button>
-</div><p id="feedback1"></p>
-<hr>
-<p><b>Q3. What can a classification threshold do?</b></p>
-<div class="options">
-<button onclick="answer(2,0)">A. Convert probability to a predicted class</button>
-<button onclick="answer(2,1)">B. Delete the dataset</button>
-<button onclick="answer(2,2)">C. Guarantee perfect accuracy</button>
-</div><p id="feedback2"></p>
-</div>
+
+<section id="evaluation">
+  <span class="label">06 · Evaluation</span>
+  <h2>Advantages and limitations</h2>
+  <div class="grid">
+    <article class="card">
+      <h3>💚 Advantages</h3>
+      <ul><li>Simple to understand and implement.</li><li>Provides probability estimates.</li><li>Works well for many classification problems when assumptions are suitable.</li></ul>
+    </article>
+    <article class="card">
+      <h3>💜 Limitations</h3>
+      <ul><li>May struggle with complex non-linear decision boundaries without feature engineering.</li><li>Can be affected by multicollinearity and poor-quality data.</li><li>Needs suitable evaluation and threshold selection.</li></ul>
+    </article>
+    <article class="card">
+      <h3>🔎 Remember</h3>
+      <p>Logistic Regression is mainly used for classification, while Linear Regression typically predicts continuous numerical values.</p>
+    </article>
+  </div>
 </section>
-<section>
-<h2>07 — Conclusion</h2>
-<div class="card">
-<p>Logistic Regression is a foundational classification algorithm. By estimating probabilities and applying a decision threshold, it can help classify outcomes such as pass/fail or spam/not spam.</p>
-<p><b>Remember:</b> Logistic Regression predicts class probabilities; it does not guarantee that every prediction is correct.</p>
-</div>
+
+<section id="quiz">
+  <span class="label">07 · Quick Quiz</span>
+  <h2>Test your knowledge</h2>
+  <div class="card">
+    <p><strong>What does the sigmoid function produce?</strong></p>
+    <button class="quiz-option" onclick="answer(this,false)">A. A value that must be greater than 100</button>
+    <button class="quiz-option" onclick="answer(this,true)">B. A value between 0 and 1</button>
+    <button class="quiz-option" onclick="answer(this,false)">C. A list of text paragraphs</button>
+    <p id="feedback" aria-live="polite"></p>
+  </div>
 </section>
-<section>
-<h2>Learn more 📚</h2>
-<div class="card">
-<p><a href="https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression" target="_blank">Scikit-learn — Logistic Regression</a></p>
-<p><a href="https://developers.google.com/machine-learning/crash-course/logistic-regression" target="_blank">Google — Logistic Regression guide</a></p>
-</div>
+
+<section id="conclusion">
+  <span class="label">08 · Conclusion</span>
+  <h2>What have we learned?</h2>
+  <div class="card">
+    <p>Logistic Regression is an important supervised machine learning algorithm used to estimate probabilities and classify data. It uses a linear combination of input features and the sigmoid function to produce a probability between 0 and 1.</p>
+    <p>In this blog, we explored its objective, mathematical formula, working steps, interactive probability example, applications, advantages and limitations. We also learned that a probability threshold helps convert an estimated probability into a predicted class.</p>
+    <p><strong>Key takeaway:</strong> Logistic Regression helps turn data into useful probability-based classification decisions. Its results should be evaluated carefully before being used in real applications.</p>
+  </div>
 </section>
-</main>
-<footer>Made with 💜 for Machine Learning · ML Bloom Blog 02<br><small>Educational project · Interactive values are illustrative</small></footer>
+
+<section id="references">
+  <span class="label">09 · References</span>
+  <h2>Further reading</h2>
+  <div class="card">
+    <ul>
+      <li><a href="https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression" target="_blank" rel="noopener">Scikit-learn — Logistic Regression</a></li>
+      <li><a href="https://developers.google.com/machine-learning/crash-course/logistic-regression" target="_blank" rel="noopener">Google — Logistic Regression</a></li>
+      <li><a href="https://www.ibm.com/think/topics/logistic-regression" target="_blank" rel="noopener">IBM — Logistic Regression Overview</a></li>
+    </ul>
+    <p>Prepared for educational purposes.</p>
+  </div>
+</section>
+
+<footer>
+  <h2>✿ ML Bloom</h2>
+  <p>Machine Learning made simple, one concept at a time.</p>
+  <p>Student: Sheetal Jaiswar · Roll No. 55034</p>
+  <p>© 2026 · Educational College Project</p>
+</footer>
+
 <script>
-function predict(){
- const h=Number(document.getElementById('hours').value);
- const t=Number(document.getElementById('threshold').value);
- const p=1/(1+Math.exp(-(h-5)*0.8));
- const pct=Math.round(p*100);
- document.getElementById('hoursText').textContent=h;
- document.getElementById('thresholdText').textContent=t+'%';
- document.getElementById('prob').textContent=pct+'%';
- document.getElementById('bar').style.width=pct+'%';
- document.getElementById('prediction').textContent=pct>=t?'Likely to pass 🎓':'May need more study time 📚';
+const score = document.getElementById("score");
+const scoreText = document.getElementById("scoreText");
+const probability = document.getElementById("probability");
+const classText = document.getElementById("classText");
+const canvas = document.getElementById("curve");
+const ctx = canvas.getContext("2d");
+
+function sigmoid(z) {
+  return 1 / (1 + Math.exp(-z));
 }
-function answer(q,choice){
- const correct=[0,1,0];
- const el=document.getElementById('feedback'+q);
- if(choice===correct[q]){
- el.textContent='Correct! 🎉 Well done.';
- el.style.color='#238454';
- }else{
- el.textContent='Not quite! Try again. 💜';
- el.style.color='#bd3978';
- }
+
+function drawCurve(selectedScore) {
+  const w = canvas.clientWidth;
+  const h = 240;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const left = 40, right = w - 15, top = 18, bottom = h - 32;
+  const px = z => left + ((z + 6) / 12) * (right - left);
+  const py = p => bottom - p * (bottom - top);
+
+  ctx.strokeStyle = "#eee6ff";
+  ctx.fillStyle = "#716a85";
+  ctx.font = "11px Arial";
+
+  [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+    ctx.beginPath();
+    ctx.moveTo(left, py(p));
+    ctx.lineTo(right, py(p));
+    ctx.stroke();
+    ctx.fillText(p.toFixed(2), 3, py(p) + 4);
+  });
+
+  ctx.strokeStyle = "#7048e8";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let z = -6; z <= 6; z += 0.1) {
+    const x = px(z), y = py(sigmoid(z));
+    if (z === -6) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  const p = sigmoid(selectedScore);
+  ctx.fillStyle = "#ff79b0";
+  ctx.beginPath();
+  ctx.arc(px(selectedScore), py(p), 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#716a85";
+  [-6, -3, 0, 3, 6].forEach(z => ctx.fillText(z, px(z) - 5, h - 10));
 }
-predict();
+
+function updateDemo() {
+  const z = Number(score.value);
+  const p = sigmoid(z);
+  scoreText.textContent = z.toFixed(1);
+  probability.textContent = (p * 100).toFixed(1) + "%";
+  classText.textContent = p >= 0.5
+    ? "At the illustrative 50% threshold: Class 1"
+    : "At the illustrative 50% threshold: Class 0";
+  drawCurve(z);
+}
+
+score.addEventListener("input", updateDemo);
+window.addEventListener("resize", updateDemo);
+
+function answer(button, correct) {
+  const feedback = document.getElementById("feedback");
+  feedback.textContent = correct
+    ? "Correct! 🎉 The sigmoid output lies between 0 and 1."
+    : "Not quite! Try again. Think about probability.";
+  feedback.style.color = correct ? "#238636" : "#c03968";
+}
+
+updateDemo();
 </script>
 </body>
 </html>
